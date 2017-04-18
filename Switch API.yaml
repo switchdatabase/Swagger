@@ -1,0 +1,348 @@
+swagger: '2.0'
+info:
+  title: Switch Database REST API
+  description: Switch API is the primary endpoint of data sevices and Switch DB's platform. You can do adding, editing, deleting or listing data works to your database with query operations by using this low-level API based on HTTP.
+  version: "1.2.1"
+host: tr02.switchapi.com
+schemes:
+  - http
+  - https
+basePath: /
+produces:
+  - application/json
+paths:
+  /Token:
+    get:
+      summary: Generate Access Token
+      description: |
+        For generating Access Token, you need API Key and API Secret parameters that are provided from the developer portal. At the request, API Key that will be sent by using header is generated as portal API Key and Signature parameter is generated as md5(APISecret + ExpireTimestamp) format. At Expire parameter, token's expire date and time information must be proper to ISO 8601 standarts and Unix Time format with msec information.
+      parameters:
+        - name: APIKey
+          in: header
+          description: Your Switch API Key.
+          required: true
+          type: string
+        - name: Signature
+          in: header
+          description: Signature parameter is generated as md5(APISecret + ExpireTimestamp) format.
+          required: true
+          type: string
+        - name: Expire
+          in: header
+          description: Expire parameter, token's expire date and time information must be proper to ISO 8601 standarts and Unix Time format with msec information.
+          required: true
+          type: integer
+          format: int64
+      tags:
+        - Authorization
+      responses:
+        200:
+          description: Access Token String
+          schema:
+            type: string
+        401:
+          description: Unauthorized (Given AccessToken parameter is invalid.)
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: Security Exception (Unsecured request.)
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Method Not Found (Called API could not found.)
+          schema:
+            $ref: '#/definitions/Error'
+        429:
+          description: TooManyRequests (API limit excess. The remaning time to the date-time for that API can answer the requests is calculated as Unix Time format under TheNextReset.)
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: ServiceException (Unexpected Error There is a detailed explanation under ErrorMessage.)
+          schema:
+            $ref: '#/definitions/Error'
+  /Add:
+    post:
+      summary: Add is used for adding a data object to the list created at Switch DB. 
+      description: |
+        You can choose the list that will be added tha data set to with List parameter that will be sent to Header. It's equal to INSERT query at the relational databases model. The data set that will be added to the database is transmited at request body. For versions upper than v1.2.1, if the data sent is an array, all items in the array are added one by one, so they are added as a whole.
+      parameters:
+        - name: APIKey
+          in: header
+          description: Your Switch API Key.
+          required: true
+          type: string
+        - name: AccessToken
+          in: header
+          description: Your Access Token.
+          required: true
+          type: string
+        - name: List
+          in: header
+          description: Your data list name.
+          required: true
+          type: string
+        - name: Body
+          in: body
+          description: Your new value JSON.
+          required: true
+          schema:
+            type: string
+      tags:
+        - DB Operations
+      responses:
+        200:
+          description: Operation Response
+          schema:
+            $ref: '#/definitions/AddResponse'
+        401:
+          description: Unauthorized (Given AccessToken parameter is invalid.)
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: Security Exception (Unsecured request.)
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Method Not Found (Called API could not found.)
+          schema:
+            $ref: '#/definitions/Error'
+        429:
+          description: TooManyRequests (API limit excess. The remaning time to the date-time for that API can answer the requests is calculated as Unix Time format under TheNextReset.)
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: ServiceException (Unexpected Error There is a detailed explanation under ErrorMessage.)
+          schema:
+            $ref: '#/definitions/Error'
+  /Set:
+    post:
+      summary: It's used for updating a data object that is already added to Switch DB. 
+      description: |
+        In order to UPDATE a object, Listname and ListItemId parameters should be sent in the Header of the REQUEST as "List", "ListItemId", respectively, as shown in the example below. It's equal to UPDATE query at relational databases. The data set that will be edited is transmited to the database at request body.
+      parameters:
+        - name: APIKey
+          in: header
+          description: Your Switch API Key.
+          required: true
+          type: string
+        - name: AccessToken
+          in: header
+          description: Your Access Token.
+          required: true
+          type: string
+        - name: List
+          in: header
+          description: Your data list name.
+          required: true
+          type: string
+        - name: ListItemId
+          in: header
+          description: Your list item id.
+          required: true
+          type: string
+        - name: Body
+          in: body
+          description: Your new value JSON.
+          required: true
+          schema:
+            type: string
+      tags:
+        - DB Operations
+      responses:
+        200:
+          description: Operation Response
+          schema:
+            $ref: '#/definitions/SetResponse'
+        401:
+          description: Unauthorized (Given AccessToken parameter is invalid.)
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: Security Exception (Unsecured request.)
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Method Not Found (Called API could not found.)
+          schema:
+            $ref: '#/definitions/Error'
+        429:
+          description: TooManyRequests (API limit excess. The remaning time to the date-time for that API can answer the requests is calculated as Unix Time format under TheNextReset.)
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: ServiceException (Unexpected Error There is a detailed explanation under ErrorMessage.)
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: It's used for deleting a data added before at Switch DB.  
+      description: |
+        List parameter sent remarks the list that will be deleted data from at Header and ListItemId parameter remarks the ID consisted by Switch DB for the data that will be deleted. It's equal to DELETE query at relational databases.
+      parameters:
+        - name: APIKey
+          in: header
+          description: Your Switch API Key.
+          required: true
+          type: string
+        - name: AccessToken
+          in: header
+          description: Your Access Token.
+          required: true
+          type: string
+        - name: List
+          in: header
+          description: Your data list name.
+          required: true
+          type: string
+        - name: ListItemId
+          in: header
+          description: Your list item id.
+          required: true
+          type: string
+      tags:
+        - DB Operations
+      responses:
+        200:
+          description: Operation Response
+          schema:
+            $ref: '#/definitions/SetResponse'
+        401:
+          description: Unauthorized (Given AccessToken parameter is invalid.)
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: Security Exception (Unsecured request.)
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Method Not Found (Called API could not found.)
+          schema:
+            $ref: '#/definitions/Error'
+        429:
+          description: TooManyRequests (API limit excess. The remaning time to the date-time for that API can answer the requests is calculated as Unix Time format under TheNextReset.)
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: ServiceException (Unexpected Error There is a detailed explanation under ErrorMessage.)
+          schema:
+            $ref: '#/definitions/Error'
+  /List:
+    post:
+      summary: It's used for listing a data added before. 
+      description: |
+        List parameter sent remarks the list that will be do listing work on at Header. It's equal to SELECT query at relational databases.
+      parameters:
+        - name: APIKey
+          in: header
+          description: Your Switch API Key.
+          required: true
+          type: string
+        - name: AccessToken
+          in: header
+          description: Your Access Token.
+          required: true
+          type: string
+        - name: List
+          in: header
+          description: Your data list name.
+          required: true
+          type: string
+        - name: Body
+          in: body
+          description: Your Switch DB Query.
+          required: true
+          schema:
+            type: object
+            properties:
+              list:
+                type: string
+                description: List name.
+              count:
+                type: integer
+                description: Item count.
+                format: int32
+              page:
+                type: integer
+                description: Page number.
+                format: int32
+              whereType:
+                type: string
+                description: Optional enumerator. You can assign the mode of implementation of where criterions by using AND and OR types under whereType parameter.
+              where:
+                type: array
+                items:
+                  $ref: '#/definitions/WhereItem'
+              order:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: 'Order types: ASC, DESC'
+                  by:
+                    type: string
+                    description: 'Column name.'
+      tags:
+        - DB Operations
+      responses:
+        200:
+          description: List Item Array
+        401:
+          description: Unauthorized (Given AccessToken parameter is invalid.)
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: Security Exception (Unsecured request.)
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Method Not Found (Called API could not found.)
+          schema:
+            $ref: '#/definitions/Error'
+        429:
+          description: TooManyRequests (API limit excess. The remaning time to the date-time for that API can answer the requests is calculated as Unix Time format under TheNextReset.)
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: ServiceException (Unexpected Error There is a detailed explanation under ErrorMessage.)
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Error:
+    type: object
+    properties:
+      ResponseTime:
+        type: integer
+        format: int64
+      Response:
+        type: string
+      ErrorMessage:
+        type: string
+  AddResponse:
+    type: object
+    properties:
+      ResponseTime:
+        type: integer
+        format: int64
+      Response:
+        type: string
+      ListItemId:
+        type: string
+  SetResponse:
+    type: object
+    properties:
+      ResponseTime:
+        type: integer
+        format: int64
+      Response:
+        type: string
+  WhereItem:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 'You can explain the controls of more than one state with where. The controls of states: equal, notEqual, like, greaterThan, lessThan'
+      column:
+        type: string
+        description: 'Column name'
+      value:
+        type: string
+        description: 'Column value'
